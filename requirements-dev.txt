@@ -1,0 +1,8 @@
+-r requirements.txt
+pytest>=9.2
+pytest-asyncio>=1.4
+pytest-cov>=7.1
+hypothesis>=6.170
+ruff>=0.17
+mypy>=2.4
+types-PyYAML

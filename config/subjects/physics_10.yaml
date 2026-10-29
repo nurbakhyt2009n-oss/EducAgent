@@ -1,0 +1,16 @@
+# Предмет: физика, 10 класс. Заполни даты СОР/СОЧ по своему календарю.
+
+id: physics_10
+name: Physics
+grade: 10
+lang: en                 # язык диалога с тьютором: ru | kk | en
+assessment_lang: en      # язык оценивания; если отличается — термины дублируются
+
+quarters:
+  1: {soch_date: null, sor_dates: []}
+  2: {soch_date: null, sor_dates: []}
+  3: {soch_date: null, sor_dates: []}
+  4: {soch_date: null, sor_dates: []}
+
+# Вес раздела в СОЧ (код раздела → вес). Пусто — все разделы равны.
+section_weights: {}

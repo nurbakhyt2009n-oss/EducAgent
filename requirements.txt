@@ -1,0 +1,54 @@
+# Полный стек всех этапов (см. docs/architecture.md).
+# Для этапа 0 достаточно: pip install -e ".[dev]"
+
+# ---------- LLM и оркестрация ----------
+ollama>=0.6                      # локальные модели, бесплатно (provider: ollama)
+anthropic>=2.3,<3                # Claude API, платно (provider: anthropic)
+langgraph>=1.2,<2
+langgraph-checkpoint-sqlite>=3.1,<4
+
+# ---------- Векторная память и эмбеддинги ----------
+chromadb>=1.5,<2
+sentence-transformers>=6.2,<7    # модель BAAI/bge-m3
+torch>=2.15                      # хватит CPU-сборки
+rank-bm25>=0.2.2                 # гибридный поиск по терминам и кодам LO
+
+# ---------- Ingestion ----------
+python-pptx>=1.0.2,<2
+pymupdf>=2.0,<3                  # лицензия AGPL-3.0
+pymupdf4llm>=2.0,<3              # PDF → markdown постранично
+pytesseract>=0.3.13              # + системный tesseract: rus, kaz, eng
+pillow>=13.0
+openpyxl>=3.1.5                  # LO из Excel
+python-docx>=1.2                 # LO из Word
+pandas>=3.1,<4
+lingua-language-detector>=2.2    # язык чанка: ru / kk / en
+rapidfuzz>=3.14                  # дедупликация чанков и LO
+
+# ---------- Модель ученика, граф, математика ----------
+networkx>=3.7,<4
+numpy>=2.5,<3
+scikit-learn>=1.9,<2             # HDBSCAN для кластеров ошибок
+fsrs>=6.3,<7                     # интервальные повторения
+sympy>=1.14                      # проверка формул и чисел
+
+# ---------- Данные и конфигурация ----------
+pydantic>=2.14,<3
+pydantic-settings>=2.16,<3
+sqlalchemy>=2.1,<3
+alembic>=1.20
+pyyaml>=6.0.3
+jinja2>=3.1.6
+python-dotenv>=1.2
+orjson>=3.13
+
+# ---------- Интерфейсы ----------
+typer>=0.27
+rich>=15.0
+streamlit>=1.66
+pyvis>=0.3.2                     # интерактивный граф слабых мест
+plotly>=7.1                      # графики прогресса
+
+# ---------- Надёжность и логи ----------
+tenacity>=9.2
+loguru>=0.7.3

@@ -1,0 +1,24 @@
+# Типы ошибок и их вес w в формуле нагрузки ошибок E_i.
+
+types:
+  conceptual:
+    weight: 1.0
+    description: Неверно понят закон, определение или идея
+  procedural:
+    weight: 0.8
+    description: Идея верна, нарушен алгоритм решения
+  incomplete_justification:
+    weight: 0.6
+    description: Ответ верный, но нет шагов, которых требуют дескрипторы
+  terminology:
+    weight: 0.5
+    description: Неверный термин или формулировка, в том числе на казахском или английском
+  units_notation:
+    weight: 0.4
+    description: Единицы измерения, обозначения, оформление
+  misreading:
+    weight: 0.4
+    description: Невнимательно прочитано условие
+  computational:
+    weight: 0.3
+    description: Арифметика и вычисления

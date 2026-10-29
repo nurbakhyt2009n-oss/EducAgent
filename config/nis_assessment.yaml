@@ -1,0 +1,31 @@
+# Правила критериального оценивания НИШ.
+# ВНИМАНИЕ: длительности, баллы и доли уровней — стартовые значения.
+# Сверь их со спецификацией СОР/СОЧ своей школы и предмета.
+
+# Код цели обучения: класс.раздел.подраздел.номер, например 10.2.1.3
+lo_code_pattern: '\b\d{1,2}\.\d{1,2}\.\d{1,2}\.\d{1,2}\b'
+
+thinking_levels:
+  knowledge_understanding:
+    label: {ru: Знание и понимание, kk: Білу және түсіну, en: Knowledge and understanding}
+  application:
+    label: {ru: Применение, kk: Қолдану, en: Application}
+  higher_order:
+    label: {ru: Навыки высокого порядка, kk: Жоғары деңгейлі дағдылар, en: Higher order thinking skills}
+
+formats:
+  practice:
+    duration_min: 0                  # без таймера
+    max_points: 0                    # баллы задаются задачей
+    hints_allowed: true
+    level_shares: {knowledge_understanding: 0.3, application: 0.4, higher_order: 0.3}
+  sor:
+    duration_min: 20
+    max_points: 10
+    hints_allowed: false
+    level_shares: {knowledge_understanding: 0.4, application: 0.4, higher_order: 0.2}
+  soch:
+    duration_min: 40
+    max_points: 25
+    hints_allowed: false
+    level_shares: {knowledge_understanding: 0.3, application: 0.4, higher_order: 0.3}

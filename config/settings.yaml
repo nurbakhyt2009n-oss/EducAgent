@@ -1,0 +1,95 @@
+# Основные настройки EducaAgent. Все значения — стартовые, их калибруют evals/.
+
+llm:
+  # tutor — объяснения, сократовский диалог, оценка развёрнутых ответов
+  # fast  — разметка чанков, диагноз, короткие ответы
+  provider: ollama                   # ollama — бесплатно, на своём компьютере; anthropic — Claude API, платно
+
+  ollama:
+    host: http://localhost:11434
+    # qwen3:4b целиком помещается в 4 ГБ видеопамяти (RTX 3050 Laptop) и отвечает быстро.
+    # qwen3:8b умнее, но часть модели уйдёт в обычную память — ответы будут медленнее.
+    tutor_model: qwen3:4b
+    fast_model: qwen3:4b
+    max_tokens: 2048                 # длина ответа
+    num_ctx: 8192                    # окно контекста: больше — больше видеопамяти
+    timeout_s: 300
+    keep_alive: 10m                  # сколько держать модель в памяти после запроса
+    think: false                     # режим рассуждений Qwen3: точнее, но заметно медленнее
+
+  anthropic:
+    tutor_model: claude-sonnet-5-5
+    fast_model: claude-haiku-5-5
+    effort:                          # глубина рассуждений: low | medium | high | xhigh | max
+      tutor: high
+      fast: low
+    max_tokens: 16000
+    timeout_s: 120
+    max_retries: 3                   # SDK сам повторяет 408/409/429/5xx и сетевые ошибки
+    budget_usd_per_session: 1.0      # жёсткий потолок расходов на одну сессию
+    # Модели, для которых включён серверный fallback при отказе (fallbacks: "default").
+    # У Haiku 5.5 серверного fallback нет.
+    refusal_fallback_models: [claude-sonnet-5-5]
+    prices:                          # USD за 1 млн токенов
+      claude-sonnet-5-5: {input: 2.00, output: 10.00, cache_write: 2.50, cache_read: 0.20}
+      claude-haiku-5-5:  {input: 0.10, output: 0.50,  cache_write: 0.125, cache_read: 0.01}
+
+learner:                             # Elo / 1PL IRT
+  k_initial: 0.4                     # первые попытки по LO — модель быстро ищет уровень
+  k_stable: 0.15
+  k_switch_after: 10
+  k_item: 0.05                       # шаг калибровки сложности задачи
+  hint_penalty: 0.25                 # каждая подсказка снижает засчитанный балл на 25%
+
+priority:                            # формула priority_i в docs/architecture.md
+  alpha: 0.3
+  beta: 0.5
+  gamma: 1.0
+  tau_days: 14
+  b_ref: 0.5
+  pagerank_damping: 0.85
+  foundation_gap: 0.6                # пререквизит с gap выше — идёт в план первым
+  exploration_bonus: 0.1
+  exam_weight_current_quarter: 1.0
+  exam_weight_past_quarter: 0.5
+  exam_weight_outside_soch: 0.2
+
+difficulty:
+  p_target: 0.75
+  p_target_exam: 0.6
+  exam_window_days: 3
+  knowledge_max_b: -0.5              # ниже — «знание и понимание»
+  application_max_b: 0.8             # выше — «навыки высокого порядка»
+
+ingestion:
+  scan_min_chars: 50                 # страница PDF короче — считается сканом
+  chunk_min_tokens: 350
+  chunk_max_tokens: 700
+  embed_batch_size: 32
+  tag_top_k: 5
+  tag_auto_threshold: 0.75
+  tag_llm_threshold: 0.55
+  prereq_min_confidence: 0.7
+
+memory:
+  embedding_model: BAAI/bge-m3
+  misconception_link_cosine: 0.8
+  misconception_window_days: 30
+  misconception_min_cluster: 2
+  misconception_resolve_streak: 3
+  exam_mistake_weight: 1.5
+
+tutor:
+  context_chunks: 6
+  similar_mistakes: 3
+  mastery_threshold: 0.8
+  max_items_per_block: 6
+  max_hints: 3
+  max_probe_failures: 2
+  bank_b_tolerance: 0.3
+  bank_reuse_days: 14
+
+evaluation:
+  numeric_rel_tol: 0.01
+  double_check_min_points: 3
+  diagnosis_min_confidence: 0.6
