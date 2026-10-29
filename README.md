@@ -1,150 +1,166 @@
 # EducaAgent
 
-> A local AI tutor that prepares NIS students for summative assessments (SAU / SAT).
-> It builds a knowledge base from your own slides, textbooks and learning objectives,
-> teaches through Socratic dialogue, grades answers against descriptors and remembers
-> your mistakes, so every next session starts with your weakest topics.
-> Runs for free on your own computer via [Ollama](https://ollama.com).
+A local AI tutor that prepares NIS students for summative assessments (SAU for a unit,
+SAT for a term). It builds a knowledge base from your own slides, textbooks and
+learning objectives (LO), teaches through Socratic dialogue, grades answers against
+assessment descriptors and remembers your mistakes, so every next session starts with
+your weakest topics. Runs for free on your own computer via [Ollama](https://ollama.com).
 
-Локальный ИИ-тьютор для подготовки к СОР и СОЧ в НИШ. Строит базу знаний из твоих
-презентаций, учебников и списков целей обучения (LO), ведёт сократовский диалог,
-проверяет ответы по дескрипторам и запоминает ошибки, чтобы следующая сессия
-начиналась с самых слабых мест. Работает бесплатно, на своём компьютере.
+Full architecture (in Russian): [docs/architecture.md](docs/architecture.md).
 
-Полная архитектура: [docs/architecture.md](docs/architecture.md).
-
-## Как это работает
+## How it works
 
 ```text
-Материалы (PPTX, PDF, LO) ──► Ingestion ──► база знаний (SQLite + ChromaDB)
+Materials (PPTX, PDF, LO) ──► Ingestion ──► knowledge base (SQLite + ChromaDB)
                                                    │
              ┌─────────────────────────────────────┘
              ▼
-   Knowledge Gap Graph ──► план сессии ──► Tutor Engine (диалог, задачи, подсказки)
+   Knowledge Gap Graph ──► session plan ──► Tutor Engine (dialogue, tasks, hints)
              ▲                                     │
-             └──── Evaluation Loop: оценка ◄───────┘
-                   → диагноз ошибки → память
+             └──── Evaluation Loop: grading ◄──────┘
+                   → error diagnosis → memory
 ```
 
-Четыре слоя: **Ingestion** строит базу знаний, **Memory** хранит ошибки и модель
-ученика, **Tutor Engine** ведёт диалог, **Evaluation Loop** проверяет ответы и
-обновляет память. Числа и формулы проверяет код (SymPy), а не нейросеть.
+Four layers: **Ingestion** builds the knowledge base, **Memory** stores mistakes and
+the learner model, **Tutor Engine** runs the dialogue, **Evaluation Loop** grades
+answers and updates memory. Numbers and formulas are checked by code (SymPy), not by
+the language model.
 
-## Статус
+## Status
 
-| Этап | Что появляется | Статус |
+| Stage | What it adds | Status |
 | --- | --- | --- |
-| 0. Каркас | config, domain, SQLite + Alembic, LLM-клиенты (Ollama и Claude), CLI | ✅ готово |
-| 1. Ingestion | загрузка PPTX, PDF, LO; чанкинг; привязка к LO | ⏳ |
-| 2. Evaluation | оценщики, диагноз ошибок, журнал ошибок | ⏳ |
-| 3. Tutor Engine | граф LangGraph, объяснения, подсказки, задачи | ⏳ |
-| 4. Self-Evolution | модель ученика, Knowledge Gap Graph, планировщик | ⏳ |
-| 5. Экзамен и дашборд | симуляция СОЧ, Streamlit | ⏳ |
-| 6. Калибровка | уточнение сложности задач | ⏳ |
+| 0. Skeleton | config, domain, SQLite + Alembic, LLM clients (Ollama and Claude), CLI | ✅ done |
+| 1. Ingestion | PPTX, PDF and LO loaders; chunking; linking chunks to LO | 🚧 in progress |
+| 2. Evaluation | graders, error diagnosis, mistake log | ⏳ |
+| 3. Tutor Engine | LangGraph flow, explanations, hints, task generation | ⏳ |
+| 4. Self-Evolution | learner model, Knowledge Gap Graph, session planner | ⏳ |
+| 5. Exam and dashboard | SAT simulation, Streamlit dashboard | ⏳ |
+| 6. Calibration | tuning task difficulty from real attempts | ⏳ |
 
-## Установка (Windows)
+## Installation (Windows)
 
-Нужны Python 3.12+ и Git. На Windows Python запускается командой `py`.
+You need Python 3.12+ and Git. On Windows, run Python with the `py` command.
 
 ```powershell
-git clone <ссылка-на-репозиторий>
-cd EducaAgent
+git clone https://github.com/nurbakhyt2009n-oss/EducAgent.git
+cd EducAgent
 py -m venv .venv
 .venv\Scripts\Activate.ps1
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[ingestion,dev]"
 ```
 
-Если PowerShell не даёт запустить `Activate.ps1`, выполни один раз
+If PowerShell refuses to run `Activate.ps1`, run this once:
 `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 
-Пакеты следующих этапов (ChromaDB, torch, LangGraph и другие) ставятся позже:
+Packages for later stages (ChromaDB, torch, LangGraph and others) are installed later:
 `python -m pip install -e ".[all,dev]"`.
 
-## Языковая модель: бесплатно или Claude
+## Language model: free or Claude
 
-Поставщик выбирается одной строкой `llm.provider` в [config/settings.yaml](config/settings.yaml).
+The provider is a single line, `llm.provider`, in [config/settings.yaml](config/settings.yaml).
 
-| `provider` | Цена | Что нужно |
+| `provider` | Cost | What you need |
 | --- | --- | --- |
-| `ollama` (по умолчанию) | бесплатно, работает без интернета | установить [Ollama](https://ollama.com/download) и скачать модель |
-| `anthropic` | платно, по токенам | ключ API в `.env` |
+| `ollama` (default) | free, works offline | install [Ollama](https://ollama.com/download) and pull a model |
+| `anthropic` | paid, per token | an API key in `.env` |
 
-Для Ollama после установки скачай модель (около 2,5 ГБ):
+For Ollama, pull the model after installing (about 2.5 GB):
 
 ```powershell
 ollama pull qwen3:4b
 ```
 
-`qwen3:4b` целиком помещается в 4 ГБ видеопамяти. На видеокарте с 8 ГБ и больше
-попробуй `qwen3:8b` — она умнее. Модель меняется в `llm.ollama.tutor_model`.
+`qwen3:4b` fits entirely into 4 GB of video memory. With 8 GB or more, try `qwen3:8b`,
+which is smarter. Change the model in `llm.ollama.tutor_model`.
 
-Для Claude скопируй `.env.example` в `.env` и впиши ключ (начинается с `sk-ant-`).
-Файл `.env` в git не попадает — никогда не вписывай ключ в `.env.example`.
+For Claude, copy `.env.example` to `.env` and put your key there (it starts with
+`sk-ant-`). `.env` is never committed. Never put a key into `.env.example`.
 
-## Первый запуск
+## First run
 
 ```powershell
-educa init                  # создаёт data/ и базу данных
-educa doctor                # проверяет, что всё настроено
+educa init                  # creates data/ and the database
+educa doctor                # checks that everything is set up
 ```
 
-Потом положи материалы в `data/raw/`:
+Then put your materials into `data/raw/`:
 
-| Папка | Что класть |
+| Folder | What goes there |
 | --- | --- |
-| `presentations/` | презентации учителя, `*.pptx` |
-| `textbooks/` | учебники, `*.pdf` |
-| `objectives/` | списки целей обучения: `*.xlsx`, `*.csv`, `*.docx`, `*.pdf` |
-| `past_papers/` | образцы СОР/СОЧ (необязательно) |
+| `presentations/` | teacher's slides, `*.pptx` |
+| `textbooks/` | textbooks, `*.pdf` |
+| `web/` | saved web pages with theory, `*.html` (any folder name works) |
+| `objectives/` | learning objective lists: `*.xlsx`, `*.csv`, `*.docx`, `*.pdf`, `*.html` |
+| `past_papers/` | sample SAU/SAT papers (optional) |
 
-Язык диалога и даты СОЧ задаются в файле предмета, например
+Then load them, for example for Grade 12 Computer Science:
+
+```powershell
+educa ingest -s computer_science_12
+```
+
+### Materials from bzfar.org
+
+[bzfar.org](https://www.bzfar.org) has NIS Computer Science lessons with learning
+objectives. Open a page in your browser, press **Ctrl+S**, choose
+**"Web page, HTML only"** and save it:
+
+- the course page (for example *CS. Grade 12*) → `data/raw/objectives/`;
+- lesson pages (*Theory & Exercises*) → `data/raw/web/`.
+
+Lesson pages start with their learning objective codes, so each lesson is linked to its
+objectives automatically.
+
+The dialogue language and SAT dates are set in the subject file, for example
 [config/subjects/physics_10.yaml](config/subjects/physics_10.yaml).
 
-## Команды
+## Commands
 
-| Команда | Что делает |
+| Command | What it does |
 | --- | --- |
-| `educa init` | Создаёт папки `data/` и применяет миграции базы |
-| `educa doctor` | Проверяет окружение и настройки, ничего не меняет |
-| `educa config` | Показывает основные настройки |
-| `educa ingest data/raw` | Загружает материалы (этап 1) |
-| `educa plan --subject physics_10` | План сессии (этап 4) |
-| `educa study` | Учебная сессия (этап 3) |
-| `educa exam --kind soch --quarter 2` | Пробный СОЧ (этап 5) |
-| `educa report` | Отчёт о прогрессе (этап 4) |
+| `educa init` | Creates the `data/` folders and applies database migrations |
+| `educa doctor` | Checks the environment and settings, changes nothing |
+| `educa config` | Shows the main settings |
+| `educa ingest -s computer_science_12` | Loads materials into the knowledge base; unchanged files are skipped |
+| `educa ingest -s computer_science_12 --force` | Re-processes every file (after a loader update) |
+| `educa plan --subject physics_10` | Builds a session plan (stage 4) |
+| `educa study` | Study session with the tutor (stage 3) |
+| `educa exam --kind soch --quarter 2` | Mock SAT (stage 5) |
+| `educa report` | Progress report (stage 4) |
 
-## Разработка
+## Development
 
 ```powershell
-pytest                      # тесты
-ruff check src tests        # линтер
-mypy src                    # проверка типов
+pytest                      # tests
+ruff check src tests        # linter
+mypy src                    # type checking
 ```
 
-Схема базы меняется только через миграции:
+The database schema changes only through migrations:
 
 ```powershell
-alembic revision --autogenerate -m "что изменилось"
+alembic revision --autogenerate -m "what changed"
 alembic upgrade head
 ```
 
-## Где что лежит
+## Project layout
 
 ```text
-config/            настройки: модели и пороги, правила НИШ, таксономия ошибок, предметы, промпты
-docs/              архитектура системы
+config/            settings: models and thresholds, NIS rules, error taxonomy, subjects, prompts
+docs/              system architecture
 src/educa_agent/
-  domain/          модели предметной области (Pydantic), без I/O
-  llm/             общий интерфейс LLM, клиенты Ollama и Claude, промпты
-  memory/db/       таблицы SQLite, репозитории, миграции Alembic
-  interfaces/      команда educa (CLI)
-  utils/           id, логирование, нормализация текста
-tests/             тесты
-data/              твои материалы и база — в git не попадает
+  domain/          domain models (Pydantic), no I/O
+  llm/             common LLM interface, Ollama and Claude clients, prompts
+  memory/db/       SQLite tables, repositories, Alembic migrations
+  interfaces/      the educa command (CLI)
+  utils/           ids, logging, text normalization
+tests/             tests
+data/              your materials and database, never committed
 ```
 
-## Приватность
+## Privacy
 
-Материалы, база с ответами и ошибками ученика, ключи API — всё хранится только
-локально: `data/` и `.env` исключены из git. С `provider: ollama` ни один запрос
-не уходит в интернет.
+Materials, the database with the student's answers and mistakes, and API keys stay on
+your computer only: `data/` and `.env` are excluded from git. With `provider: ollama`,
+no request leaves your machine.

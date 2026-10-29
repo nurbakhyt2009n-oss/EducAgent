@@ -74,7 +74,8 @@ class ChunkRow(Base):
     source_id: Mapped[str] = mapped_column(
         ForeignKey("documents.id", ondelete="CASCADE"), index=True
     )
-    location: Mapped[str] = mapped_column(String(64))       # "слайд 12" | "с. 87"
+    seq: Mapped[int] = mapped_column(Integer, server_default="0")  # порядок в документе
+    location: Mapped[str] = mapped_column(String(64))       # "slide 12" | "p. 87"
     section_path: Mapped[list[str]] = mapped_column(default=list)
     chunk_type: Mapped[str] = mapped_column(String(32))
     lang: Mapped[str] = mapped_column(String(2))

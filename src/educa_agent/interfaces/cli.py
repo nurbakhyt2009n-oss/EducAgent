@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
 import typer
 from rich.console import Console
@@ -16,6 +16,9 @@ from educa_agent.container import Container
 from educa_agent.domain.enums import AssessmentKind
 from educa_agent.memory.db.session import current_revision, head_revision, upgrade
 from educa_agent.utils.logging import setup_logging
+
+if TYPE_CHECKING:
+    from educa_agent.ingestion.pipeline import IngestReport
 
 app = typer.Typer(
     name="educa",
@@ -186,9 +189,78 @@ def _not_yet(stage: str) -> None:
 
 
 @app.command()
-def ingest(path: Annotated[Path, typer.Argument(help="Папка с материалами.")] = Path("data/raw")):
-    """Загружает PPTX, PDF и списки LO в базу знаний."""
-    _not_yet("1 · Ingestion")
+def ingest(
+    subject: Annotated[
+        str, typer.Option("--subject", "-s", help="Предмет, например informatics_11.")
+    ],
+    path: Annotated[
+        Path | None, typer.Argument(help="Папка с материалами (по умолчанию data/raw).")
+    ] = None,
+    force: Annotated[
+        bool, typer.Option("--force", help="Переобработать все файлы, даже неизменённые.")
+    ] = False,
+) -> None:
+    """Загружает PPTX, PDF и списки LO в базу знаний. Повторный запуск берёт только изменённое."""
+    from educa_agent.ingestion.pipeline import IngestionPipeline
+
+    c = _container()
+    paths = c.config.paths
+    raw_dir = path or paths.raw
+    if not raw_dir.is_dir():
+        console.print(f"{FAIL} Папка {raw_dir} не найдена — запусти educa init")
+        raise typer.Exit(1)
+    if not paths.db.exists() or current_revision(c.engine) != head_revision(paths.db_url):
+        console.print(f"{FAIL} База не создана или устарела — запусти educa init")
+        raise typer.Exit(1)
+    try:
+        c.config.subject(subject)
+    except KeyError as e:
+        console.print(f"{FAIL} {e.args[0]}")
+        raise typer.Exit(1) from e
+
+    setup_logging(c.config.log_level, paths.logs)
+    with console.status(f"Обрабатываю {raw_dir} …"):
+        report = IngestionPipeline(c.config, c.sessions, subject).run(raw_dir, force=force)
+    _print_ingest_report(report)
+    if report.failed:
+        raise typer.Exit(1)
+
+
+def _print_ingest_report(r: IngestReport) -> None:
+    files = Table(title=f"Ingest · {r.subject}", show_header=False)
+    files.add_row("Новые файлы", str(len(r.new)))
+    files.add_row("Изменённые", str(len(r.changed)))
+    files.add_row("Без изменений", str(len(r.unchanged)))
+    files.add_row("Удалённые", str(len(r.removed)))
+    files.add_row("Ошибки", f"[red]{len(r.failed)}[/]" if r.failed else "0")
+    files.add_row("Записано чанков", str(r.chunks_written))
+    files.add_row("Чанков у предмета", str(r.chunks_total))
+    if r.chunk_types:
+        files.add_row("Типы", ", ".join(f"{t}: {n}" for t, n in r.chunk_types.most_common()))
+    files.add_row(
+        "Целей обучения (LO)", f"{r.objectives_total} (прочитано из файлов: {r.objectives_parsed})"
+    )
+    covered = r.objectives_total - len(r.uncovered)
+    files.add_row("LO с явной привязкой", f"{covered} из {r.objectives_total}")
+    console.print(files)
+
+    for rel, err in r.failed:
+        console.print(f"{FAIL} {rel}: {err}")
+    for rel, reason in r.skipped:
+        console.print(f"{WARN} пропущен {rel}: {reason}")
+    for rel, pages in r.scanned_pages.items():
+        console.print(f"{WARN} {rel}: страницы-сканы без текста {pages} — нужен OCR")
+    for rel, slides in r.image_only_slides.items():
+        console.print(f"{WARN} {rel}: слайды только с картинками {slides}")
+    for w in r.warnings:
+        console.print(f"{WARN} {w}")
+    if r.uncovered and r.objectives_total:
+        shown = ", ".join(r.uncovered[:10]) + (" …" if len(r.uncovered) > 10 else "")
+        console.print(
+            f"{WARN} Без явной привязки к материалам: {shown}\n"
+            "   Это нормально: явная привязка — только по коду цели в тексте. "
+            "Привязка по смыслу появится вместе с эмбеддингами."
+        )
 
 
 @app.command()

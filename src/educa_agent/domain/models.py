@@ -19,13 +19,17 @@ class LearningObjective(BaseModel):
     exam_weight: float = 1.0
 
 
+# "theory" — обычное объяснение, которое не подходит под остальные типы.
+ChunkType = Literal["definition", "law", "theory", "worked_example",
+                    "exercise", "figure", "summary"]
+
+
 class Chunk(BaseModel):
     id: str
     source_id: str
     text: str
-    chunk_type: Literal["definition", "law", "worked_example",
-                        "exercise", "figure", "summary"]
-    location: str                    # "слайд 12" | "с. 87"
+    chunk_type: ChunkType
+    location: str                    # "slide 12" | "p. 87"
     section_path: list[str] = []
     lo_codes: list[str] = []
 

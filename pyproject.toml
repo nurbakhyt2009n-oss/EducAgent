@@ -38,6 +38,7 @@ ingestion = [
     "pandas>=3.1,<4",
     "lingua-language-detector>=2.2",
     "rapidfuzz>=3.14",
+    "lxml>=6.0",                    # сохранённые веб-страницы (.html)
 ]
 memory = [
     "chromadb>=1.5,<2",
@@ -80,6 +81,7 @@ packages = ["src/educa_agent"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["tests"]          # для tests/builders.py
 addopts = "-ra"
 asyncio_default_fixture_loop_scope = "function"
 markers = ["integration: медленные тесты с реальными файлами и БД"]

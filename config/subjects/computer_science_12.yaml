@@ -1,0 +1,18 @@
+# Subject: Computer Science (advanced), grade 12, NIS programme.
+# Learning objectives and theory: https://www.bzfar.org (CS. Grade 12).
+# Fill in SAU/SAT dates from your school calendar.
+
+id: computer_science_12
+name: Computer Science
+grade: 12
+lang: en                 # dialogue language: ru | kk | en
+assessment_lang: en      # assessment language; if different, terms are duplicated
+
+quarters:
+  1: {soch_date: null, sor_dates: []}
+  2: {soch_date: null, sor_dates: []}
+  3: {soch_date: null, sor_dates: []}
+  4: {soch_date: null, sor_dates: []}
+
+# Weight of a section in the SAT (section code → weight). Empty — all sections are equal.
+section_weights: {}
